@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🐼 熊猫摇金币 V3 | Panda Math Adventure</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:"Trebuchet MS","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#dff7d8,#fff4c7);color:#333}
+button{font:inherit;cursor:pointer;border:0}
+.hidden{display:none!important}
+.screen{min-height:100vh}
+.home{display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border:4px solid #333;border-radius:30px;box-shadow:0 8px 0 #333;padding:28px;width:min(980px,100%)}
+.logo{font-size:78px;text-align:center;animation:bob 1.5s infinite}
+h1{text-align:center;font-size:42px;margin:4px 0 8px}
+.subtitle{text-align:center;color:#666;margin-bottom:24px}
+.lang{display:flex;justify-content:center;gap:8px;margin-bottom:18px}
+.lang button,.btn{border:3px solid #333;border-radius:15px;padding:10px 16px;background:#fff;box-shadow:0 4px 0 #333;font-weight:700}
+.lang button.active,.primary{background:#ffe36e}
+.btn:active,.lang button:active{transform:translateY(3px);box-shadow:0 1px 0 #333}
+.home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:650px;margin:auto}
+.home-grid .primary{grid-column:1/-1;font-size:24px;padding:17px}
+.hud{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px}
+.hud span{background:#fff;border:3px solid #333;border-radius:14px;padding:7px 13px;box-shadow:0 3px 0 #333;font-weight:bold}
+.layout{width:min(1200px,100%);margin:auto;display:grid;grid-template-columns:1fr 245px;gap:12px;padding:0 12px 18px}
+#world{height:650px;position:relative;overflow:hidden;border:5px solid #333;border-radius:28px;background:#8bd477;box-shadow:0 7px 0 #333}
+.river{position:absolute;right:9%;top:-10%;width:135px;height:120%;background:#73cff0;border-left:6px solid #4aa9ce;border-right:6px solid #4aa9ce;transform:rotate(7deg)}
+.path{position:absolute;background:#d9b67a;border:4px solid rgba(80,60,30,.2);border-radius:60px}
+.p1{width:92%;height:85px;left:4%;top:44%;transform:rotate(-6deg)}
+.p2{height:85%;width:75px;left:49%;top:8%;transform:rotate(7deg)}
+.decor{position:absolute;font-size:42px}
+#panda{position:absolute;font-size:54px;width:68px;height:68px;display:flex;align-items:center;justify-content:center;z-index:20;filter:drop-shadow(0 4px 2px #777)}
+.jump{animation:jump .55s}
+@keyframes jump{40%{transform:translateY(-32px) rotate(-8deg)}70%{transform:translateY(-20px) rotate(8deg)}}
+.challenge{position:absolute;left:42%;top:34%;z-index:15;text-align:center;animation:bob 1.5s infinite}
+.challenge-icon{font-size:54px}
+.challenge-label{background:#fff;border:3px solid #333;border-radius:13px;padding:5px 9px;font-weight:bold}
+.coin{position:absolute;font-size:32px;z-index:10;animation:float 1s infinite alternate}
+@keyframes float{to{transform:translateY(-7px) rotate(5deg)}}
+.side{background:#fff;border:4px solid #333;border-radius:24px;box-shadow:0 7px 0 #333;padding:14px;height:max-content}
+.side h3{text-align:center;margin:4px}
+.info{background:#f6f6f6;border:2px dashed #777;border-radius:14px;padding:9px;margin:8px 0}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:170px;margin:12px auto}
+.controls button{height:44px;border:3px solid #333;border-radius:12px;background:#ffe36e}
+.controls button:first-child{grid-column:2}.controls button:nth-child(2){grid-column:1}.controls button:nth-child(3){grid-column:2}.controls button:nth-child(4){grid-column:3}
+.side .btn{width:100%;margin:4px 0;padding:9px}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
+.modal-card{background:#fff;border:4px solid #333;border-radius:26px;box-shadow:0 8px 0 #333;padding:22px;width:min(700px,100%);max-height:90vh;overflow:auto}
+.close{float:right;width:34px;height:34px;border-radius:50%;border:3px solid #333;background:#ff9a9a;font-weight:bold}
+.modal-title{text-align:center;font-size:28px;font-weight:bold;margin:4px 0 18px}
+.question{text-align:center;font-size:28px;font-weight:bold;line-height:1.5;margin:18px 0}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{padding:15px;border:4px solid #333;border-radius:16px;background:#fff;box-shadow:0 4px 0 #333;font-size:21px;font-weight:bold}
+.choice.correct{background:#8be28b}.choice.wrong{background:#ff9292}
+.feedback{text-align:center;font-weight:bold;font-size:19px;min-height:30px;margin-top:12px}
+.shop-grid,.topic-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.shop-item,.topic{border:3px solid #333;border-radius:16px;padding:12px;background:#fffbea}
+.shop-icon{text-align:center;font-size:38px}.shop-item{text-align:center}
+.topic{font-weight:bold;text-align:left}.topic.active{background:#ffe36e}
+.skin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.skin{border:3px solid #333;border-radius:15px;padding:12px;text-align:center;background:#fff}.skin.selected{background:#ffe36e}.skin-icon{font-size:40px}
+.rank{display:flex;justify-content:space-between;padding:11px;margin:6px 0;border:2px solid #333;border-radius:12px;background:#fffbea}
+.achievement{border:3px solid #333;border-radius:14px;padding:10px;margin:7px 0;background:#eee}.achievement.on{background:#fff0a5}
+#toast{position:fixed;top:15px;left:50%;transform:translate(-50%,-90px);background:#333;color:#fff;padding:11px 18px;border-radius:20px;z-index:300;transition:.25s;font-weight:bold}
+#toast.show{transform:translate(-50%,0)}
+@keyframes bob{50%{transform:translateY(-7px)}}
+@media(max-width:850px){.layout{grid-template-columns:1fr}#world{height:520px}}
+@media(max-width:600px){h1{font-size:32px}.home-grid,.choices,.shop-grid,.topic-grid{grid-template-columns:1fr}.home-grid .primary{grid-column:auto}.skin-grid{grid-template-columns:repeat(2,1fr)}.question{font-size:23px}}
+
+#gamePanda{animation:bob 1.5s infinite;filter:drop-shadow(0 5px 2px #777)}
+@media(max-width:600px){#gamePanda{font-size:65px}}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<section id="home" class="screen home">
+<div class="card">
+<div class="logo">🐼</div>
+<h1 id="title">熊猫摇金币</h1>
+<div class="subtitle" id="subtitle">一年级数学 · 边玩边学 · 收集金币 🪙</div>
+<div class="lang">
+<button id="zhBtn" class="active" onclick="setLang('zh')">🇨🇳 华语</button>
+<button id="enBtn" onclick="setLang('en')">🇬🇧 English</button>
+</div>
+<div class="home-grid">
+<button class="btn primary" id="startBtn" onclick="startGame()">🚀 开始冒险</button>
+<button class="btn" id="topicBtn" onclick="openModal('topics')">📚 数学章节</button>
+<button class="btn" id="shopBtn" onclick="openShop()">🛍️ 熊猫商店</button>
+<button class="btn" id="achBtn" onclick="openAchievements()">🏆 成就</button>
+<button class="btn" id="rankBtn" onclick="openLeaderboard()">🥇 排行榜</button>
+</div>
+<p style="text-align:center;color:#777;margin-top:22px" id="homeTip">选择数学章节，点击「开始答题」就可以挑战！</p>
+</div>
+</section>
+
+
+<section id="game" class="screen hidden">
+<div class="hud">
+<span>🪙 <b id="coins">0</b></span>
+<span>❤️ <b id="lives">3</b></span>
+<span>🔥 <b id="combo">0</b></span>
+<span>⭐ <b id="score">0</b></span>
+<span>📚 <b id="level">Lv.1</b></span>
+</div>
+
+<div class="card" style="max-width:900px;margin:10px auto;text-align:center">
+  <div style="font-size:80px" id="gamePanda">🐼</div>
+  <h2 id="gameModeTitle">🪙 熊猫数学挑战</h2>
+  <p id="gameModeTip">选择课题后，点击「开始答题」！</p>
+  <div style="background:#f7f7f7;border:3px dashed #777;border-radius:18px;padding:12px;margin:15px auto;max-width:650px">
+    <b id="selectedTopicTitle">当前课题：</b>
+    <span id="currentTopic">随机挑战</span>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="btn primary" onclick="openQuestion()" id="answerBtn">📝 开始答题</button>
+    <button class="btn" onclick="openModal('topics')" id="changeTopicBtn">📚 更换课题</button>
+    <button class="btn" onclick="openShop()" id="gameShop">🛍️ 商店</button>
+    <button class="btn" onclick="openAchievements()" id="gameAch">🏆 成就</button>
+    <button class="btn" onclick="endGame()" id="homeBtn">🏠 回到主页</button>
+  </div>
+  <div style="margin-top:24px;font-size:48px">🪙 🪙 🪙 🪙 🪙</div>
+  <p id="collectTip">答对题目就可以获得金币！</p>
+</div>
+</section>
+
+
+<div id="questionModal" class="modal hidden"><div class="modal-card">
+<button class="close" onclick="closeQuestion()">×</button>
+<div style="text-align:center;font-size:48px">🐼</div><div class="modal-title" id="questionTitle">📝 数学挑战</div>
+<div class="question" id="questionText"></div>
+<div class="choices" id="choices"></div>
+<div class="feedback" id="feedback"></div>
+<div style="text-align:center;margin-top:14px">
+<button class="btn" onclick="useHint()">💡 <span id="hintBtn">提示</span></button>
+<button class="btn" onclick="skipQuestion()">⏭️ <span id="skipBtn">跳过</span></button>
+</div>
+</div></div>
+
+<div id="shopModal" class="modal hidden"><div class="modal-card">
+<button class="close" onclick="closeModal('shopModal')">×</button>
+<div class="modal-title" id="shopTitle">🛍️ 熊猫商店</div>
+<p style="text-align:center" id="shopCoinText">目前金币：🪙 <b id="shopCoins">0</b></p>
+<div class="shop-grid" id="shopGrid"></div>
+<hr>
+<div class="modal-title" style="font-size:22px" id="skinTitle">🐼 熊猫造型</div>
+<div class="skin-grid" id="skinGrid"></div>
+</div></div>
+
+<div id="topicsModal" class="modal hidden"><div class="modal-card">
+<button class="close" onclick="closeModal('topicsModal')">×</button>
+<div class="modal-title" id="topicsTitle">📚 数学章节</div>
+<div class="topic-grid" id="topicGrid"></div>
+</div></div>
+
+<div id="achievementModal" class="modal hidden"><div class="modal-card">
+<button class="close" onclick="closeModal('achievementModal')">×</button>
+<div class="modal-title" id="achTitle">🏆 成就</div><div id="achievementList"></div>
+</div></div>
+
+<div id="leaderboardModal" class="modal hidden"><div class="modal-card">
+<button class="close" onclick="closeModal('leaderboardModal')">×</button>
+<div class="modal-title" id="rankTitle">🥇 排行榜</div><div id="leaderboardList"></div>
+<div style="text-align:center;margin-top:12px"><button class="btn" onclick="clearLeaderboard()" id="clearRank">🗑️ 清除排行榜</button></div>
+</div></div>
+
+<script>
+const topics=[
+{id:"composition",zh:"数目的组合",en:"Number Composition"},
+{id:"pattern",zh:"数列的规律",en:"Number Patterns"},
+{id:"approx",zh:"数目的近似值",en:"Approximation of Numbers"},
+{id:"addition100",zh:"100以内不进位加法与进位加法",en:"Addition within 100"},
+{id:"subtraction100",zh:"100以内不借位减法与借位减法",en:"Subtraction within 100"},
+{id:"repeated",zh:"连加与连减法",en:"Repeated Addition & Subtraction"},
+{id:"story",zh:"编写故事",en:"Write a Number Story"},
+{id:"fraction",zh:"分数",en:"Fractions"},
+{id:"money",zh:"钱币",en:"Money"},
+{id:"measure",zh:"度量衡",en:"Measurement"},
+{id:"time",zh:"时间与时刻",en:"Time & Clock"},
+{id:"problem",zh:"解决问题",en:"Problem Solving"},
+{id:"random",zh:"随机挑战",en:"Random Challenge"}
+];
+
+let lang=localStorage.getItem("pandaLang")||"zh";
+let topic="random";
+let skin=localStorage.getItem("pandaSkin")||"🐼";
+let game={coins:+localStorage.getItem("pandaCoins")||0,lives:3,combo:0,score:0,correct:0,wrong:0,level:1,question:false,answer:"",x:50,y:50,double:false};
+
+const A=[
+{id:"first",zh:"🌟 第一次答对",en:"🌟 First Correct Answer",dzh:"第一次正确回答数学题",den:"Answer your first question correctly",check:()=>game.correct>=1},
+{id:"combo3",zh:"🔥 连胜3题",en:"🔥 3-Question Combo",dzh:"连续答对3题",den:"Get 3 correct answers in a row",check:()=>game.combo>=3},
+{id:"combo5",zh:"🔥 连胜5题",en:"🔥 5-Question Combo",dzh:"连续答对5题",den:"Get 5 correct answers in a row",check:()=>game.combo>=5},
+{id:"100",zh:"🪙 100金币",en:"🪙 100 Coins",dzh:"获得100金币",den:"Collect 100 coins",check:()=>game.coins>=100},
+{id:"500",zh:"💰 500金币",en:"💰 500 Coins",dzh:"获得500金币",den:"Collect 500 coins",check:()=>game.coins>=500},
+{id:"20",zh:"📚 数学小达人",en:"📚 Math Star",dzh:"答对20题",den:"Answer 20 questions correctly",check:()=>game.correct>=20}
+];
+
+function t(zh,en){return lang==="zh"?zh:en}
+function setLang(x){
+ lang=x;localStorage.setItem("pandaLang",x);
+ document.getElementById("zhBtn").classList.toggle("active",x==="zh");
+ document.getElementById("enBtn").classList.toggle("active",x==="en");
+ renderAll();
+}
+function renderAll(){
+ document.getElementById("title").textContent=t("熊猫摇金币 V3","Panda Math Adventure V3");
+ document.getElementById("subtitle").textContent=t("一年级数学 · 边玩边学 · 收集金币 🪙","Year 1 Maths · Learn & Play · Collect Coins 🪙");
+ document.getElementById("startBtn").textContent=t("🚀 开始冒险","🚀 Start Adventure");
+ document.getElementById("topicBtn").textContent=t("📚 数学章节","📚 Maths Topics");
+ document.getElementById("shopBtn").textContent=t("🛍️ 熊猫商店","🛍️ Panda Shop");
+ document.getElementById("achBtn").textContent=t("🏆 成就","🏆 Achievements");
+ document.getElementById("rankBtn").textContent=t("🥇 排行榜","🥇 Leaderboard");
+ document.getElementById("homeTip").textContent=t("选择数学章节，点击「开始答题」就可以挑战！","Choose a maths topic, then click “Start Question”!");
+ document.getElementById("adventureTitle").textContent=t("🐼 熊猫冒险","🐼 Panda Adventure");
+ document.getElementById("controlInfo").textContent=t("用 ⬆️⬇️⬅️➡️ 或 W A S D 移动","Use ⬆️⬇️⬅️➡️ or W A S D to move");
+ document.getElementById("topicLabel").textContent=t("当前章节：","Current topic: ");
+ document.getElementById("goal").textContent=t("点击「开始答题」开始数学挑战！","Click “Start Question” to begin!");
+ document.getElementById("challengeText").textContent=t("数学挑战！","Math Challenge!");
+ document.getElementById("gameShop").textContent=t("🛍️ 商店","🛍️ Shop");
+ document.getElementById("gameAch").textContent=t("🏆 成就","🏆 Achievements");
+ document.getElementById("homeBtn").textContent=t("🏠 回到主页","🏠 Home");
+ document.getElementById("questionTitle").textContent=t("📝 数学挑战","📝 Math Challenge");
+ document.getElementById("hintBtn").textContent=t("提示","Hint");
+ document.getElementById("skipBtn").textContent=t("跳过","Skip");
+ document.getElementById("shopTitle").textContent=t("🛍️ 熊猫商店","🛍️ Panda Shop");
+ document.getElementById("skinTitle").textContent=t("🐼 熊猫造型","🐼 Panda Skins");
+ document.getElementById("topicsTitle").textContent=t("📚 数学章节","📚 Maths Topics");
+ document.getElementById("achTitle").textContent=t("🏆 成就","🏆 Achievements");
+ document.getElementById("rankTitle").textContent=t("🥇 排行榜","🥇 Leaderboard");
+ document.getElementById("clearRank").textContent=t("🗑️ 清除排行榜","🗑️ Clear Leaderboard");
+ document.getElementById("currentTopic").textContent=(topics.find(x=>x.id===topic)||topics.at(-1))[lang];
+ renderTopics();renderShop();renderAchievements();
+ updateHUD();
+}
+function startGame(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ game.lives=3;game.combo=0;game.score=0;game.correct=0;game.wrong=0;game.level=1;game.double=false;game.x=50;game.y=50;
+ setSkin();createCoins();positionPanda();updateHUD();toast(t("🐼 冒险开始！没有倒计时，慢慢想！","🐼 Adventure starts! No timer — take your time!"));
+}
+function endGame(){
+ closeQuestion();document.getElementById("game").classList.add("hidden");document.getElementById("home").classList.remove("hidden");
+ if(game.score>0)saveScore(game.score);localStorage.setItem("pandaCoins",game.coins);renderAll();
+}
+function updateHUD(){
+ document.getElementById("coins").textContent=game.coins;document.getElementById("lives").textContent=game.lives;document.getElementById("combo").textContent=game.combo;document.getElementById("score").textContent=game.score;document.getElementById("level").textContent="Lv."+game.level;document.getElementById("shopCoins").textContent=game.coins;
+}
+function positionPanda(){
+ const w=document.getElementById("world"),p=document.getElementById("panda");
+ p.style.left=Math.max(4,Math.min(w.clientWidth-70,game.x/100*w.clientWidth))+"px";
+ p.style.top=Math.max(4,Math.min(w.clientHeight-70,game.y/100*w.clientHeight))+"px";
+}
+function movePanda(dx,dy){
+ if(document.getElementById("game").classList.contains("hidden"))return;
+ game.x=Math.max(4,Math.min(93,game.x+dx*2.5));game.y=Math.max(4,Math.min(91,game.y+dy*2.5));positionPanda();checkCoins();checkChallenge();
+}
+document.addEventListener("keydown",e=>{let k=e.key.toLowerCase();if(k==="arrowup"||k==="w")movePanda(0,-1);if(k==="arrowdown"||k==="s")movePanda(0,1);if(k==="arrowleft"||k==="a")movePanda(-1,0);if(k==="arrowright"||k==="d")movePanda(1,0)});
+
+function createCoins(){
+ document.querySelectorAll(".coin").forEach(x=>x.remove());
+ const w=document.getElementById("world");
+ for(let i=0;i<16;i++){let c=document.createElement("div");c.className="coin";c.textContent="🪙";c.style.left=(5+Math.random()*88)+"%";c.style.top=(6+Math.random()*86)+"%";c.onclick=()=>collectCoin(c);w.appendChild(c)}
+}
+function collectCoin(c){
+ if(!c.parentNode)return;c.remove();let n=game.double?10:5;game.coins+=n;game.score+=n;updateHUD();localStorage.setItem("pandaCoins",game.coins);sound("coin");toast("🪙 +"+n+(lang==="zh"?"金币":" coins"));
+}
+function checkCoins(){
+ let p=document.getElementById("panda").getBoundingClientRect();
+ document.querySelectorAll(".coin").forEach(c=>{let r=c.getBoundingClientRect();let dx=p.left+p.width/2-r.left-r.width/2,dy=p.top+p.height/2-r.top-r.height/2;if(Math.hypot(dx,dy)<52)collectCoin(c)})
+}
+function checkChallenge(){
+ let p=document.getElementById("panda").getBoundingClientRect(),n=document.getElementById("challenge").getBoundingClientRect();
+ if(Math.hypot(p.left+p.width/2-n.left-n.width/2,p.top+p.height/2-n.top-n.height/2)<105&&!game.question)openQuestion();
+}
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function choices(ans,min,max){
+ let a=[String(ans)];while(a.length<4){let n=String(ri(min,max));if(!a.includes(n))a.push(n)}return shuffle(a)
+}
+function qmake(){
+ let type=topic;if(type==="random")type=topics.filter(x=>x.id!=="random")[ri(0,11)].id;
+ let q,a,ch;
+ if(type==="composition"){let total=ri(6,20),x=ri(1,total-1);q=t(`${total} 可以分成 ${x} 和 ［？］`,`${total} can be split into ${x} and [?]`);a=total-x;ch=choices(a,0,total)}
+ if(type==="pattern"){let start=ri(1,10),step=ri(1,5);q=t(`找规律：${start}，${start+step}，${start+2*step}，［？］`,`Find the pattern: ${start}, ${start+step}, ${start+2*step}, [?]`);a=start+3*step;ch=choices(a,1,30)}
+ if(type==="approx"){let n=ri(11,99),r=n%10>=5?Math.ceil(n/10)*10:Math.floor(n/10)*10;q=t(`${n} 约等于多少？（最接近的十位数）`,`What is ${n} approximately? (Nearest ten)`);a=r;ch=choices(a,0,100)}
+ if(type==="addition100"){let x=ri(1,60),y=ri(1,100-x);q=t(`${x} + ${y} = ？`,`${x} + ${y} = ?`);a=x+y;ch=choices(a,0,100)}
+ if(type==="subtraction100"){let x=ri(10,100),y=ri(1,x);q=t(`${x} − ${y} = ？`,`${x} − ${y} = ?`);a=x-y;ch=choices(a,0,100)}
+ if(type==="repeated"){let x=ri(2,10),y=ri(1,8),z=ri(1,8);if(Math.random()<.5){q=t(`${x} + ${y} + ${z} = ？`,`${x} + ${y} + ${z} = ?`);a=x+y+z}else{let total=x+y+z;q=t(`${total} − ${z} − ${y} = ？`,`${total} − ${z} − ${y} = ?`);a=x}ch=choices(a,0,30)}
+ if(type==="story"){let x=ri(2,9),y=ri(1,9);q=t(`🐼 熊猫有 ${x} 个苹果，又得到 ${y} 个。<br>现在一共有多少个？`,`🐼 Panda has ${x} apples and gets ${y} more.<br>How many apples are there now?`);a=x+y;ch=choices(a,0,20)}
+ if(type==="fraction"){let den=[2,3,4][ri(0,2)],num=1;q=t(`一个东西平均分成 ${den} 份，取其中 1 份，是多少？`,`An object is divided equally into ${den} parts. What fraction is 1 part?`);a=`1/${den}`;ch=[`1/2`,`1/3`,`1/4`,`1/5`];ch=shuffle(ch)}
+ if(type==="money"){let a1=ri(1,5),b=ri(1,5);q=t(`💰 RM${a1} + RM${b} = ？`,`💰 RM${a1} + RM${b} = ?`);a="RM"+(a1+b);ch=["RM"+(a1+b),"RM"+(a1+b+1),"RM"+Math.max(0,a1+b-1),"RM"+(a1+b+2)]}
+ if(type==="measure"){let items=[[t("尺","Ruler"),t("铅笔","Pencil")],[t("桌子","Table"),t("橡皮擦","Eraser")],[t("绳子","Rope"),t("橡皮擦","Eraser")]];let it=items[ri(0,2)];q=t(`哪一个通常比较长？<br>📏 ${it[0]}　✏️ ${it[1]}`,`Which is usually longer?<br>📏 ${it[0]}　✏️ ${it[1]}`);a=it[0];ch=[it[0],it[1],t("一样长","Same length"),t("不能确定","Cannot tell")]}
+ if(type==="time"){let hours=ri(1,12);q=t(`🕐 现在是 ${hours} 点。<br>时针指向哪个数字？`,`🕐 It is ${hours} o'clock.<br>Which number does the hour hand point to?`);a=hours;ch=choices(a,1,12)}
+ if(type==="problem"){let x=ri(5,20),y=ri(1,x);q=t(`小明有 ${x} 枚金币，花掉 ${y} 枚。<br>还剩多少枚？`,`Ming has ${x} coins and spends ${y}.<br>How many coins are left?`);a=x-y;ch=choices(a,0,20)}
+ return {text:q,answer:String(a),choices:ch.map(String)}
+}
+function openQuestion(){
+ if(game.question)return;game.question=true;let q=qmake();game.answer=q.answer;
+ document.getElementById("questionModal").classList.remove("hidden");document.getElementById("questionText").innerHTML=q.text;document.getElementById("feedback").textContent="";
+ let box=document.getElementById("choices");box.innerHTML="";
+ q.choices.forEach(x=>{let b=document.createElement("button");b.className="choice";b.textContent=x;b.onclick=()=>answer(x,b);box.appendChild(b)});
+}
+function closeQuestion(){game.question=false;document.getElementById("questionModal").classList.add("hidden")}
+function answer(x,b){
+ if(!game.question)return;game.question=false;document.querySelectorAll(".choice").forEach(z=>z.disabled=true);
+ if(String(x)===String(game.answer)){
+  b.classList.add("correct");game.correct++;game.combo++;let reward=10+game.combo*2;if(game.double)reward*=2;game.coins+=reward;game.score+=reward*2;
+  document.getElementById("feedback").textContent=t(`🎉 答对了！+${reward} 金币`,`🎉 Correct! +${reward} coins`);sound("correct");
+  let p=document.getElementById("panda");p.classList.add("jump");setTimeout(()=>p.classList.remove("jump"),600);
+ }else{
+  b.classList.add("wrong");game.wrong++;game.combo=0;game.lives--;document.getElementById("feedback").textContent=t(`❌ 再试试看！正确答案是 ${game.answer}`,`❌ Try again! The answer is ${game.answer}`);sound("wrong");
+ }
+ game.level=Math.floor(game.correct/5)+1;updateHUD();localStorage.setItem("pandaCoins",game.coins);
+ setTimeout(()=>{closeQuestion();if(game.lives<=0)finish();},900);
+}
+function useHint(){
+ if(!game.question){toast(t("💡 请先开始答题","💡 Start a question first"));return}
+ let wrong=[...document.querySelectorAll(".choice")].filter(b=>b.textContent!==game.answer&&!b.disabled);
+ if(wrong.length){wrong[ri(0,wrong.length-1)].disabled=true;toast(t("💡 已排除一个错误答案","💡 One wrong answer has been removed"))}
+}
+function skipQuestion(){if(!game.question){toast(t("⏭️ 请先开始答题","⏭️ Start a question first"));return}closeQuestion();toast(t("⏭️ 题目跳过了","⏭️ Question skipped"))}
+
+function openShop(){document.getElementById("shopModal").classList.remove("hidden");renderShop()}
+function renderShop(){
+ let data=[
+  ["⏰","time",50,t("再来一次提示","Extra Hint")],
+  ["💡","hint",80,t("提示答案","Answer Hint")],
+  ["⏭️","skip",100,t("跳过题目","Skip Question")],
+  ["✨","double",150,t("双倍金币","Double Coins")],
+  ["❤️","life",120,t("生命 +1","Life +1")]
+ ];
+ document.getElementById("shopGrid").innerHTML=data.map(d=>`<div class="shop-item"><div class="shop-icon">${d[0]}</div><b>${d[3]}</b><div>🪙 ${d[2]}</div><button class="btn primary" onclick="buy('${d[1]}',${d[2]})">${t("购买","Buy")}</button></div>`).join("");
+ document.getElementById("skinGrid").innerHTML=[["🐼",t("普通","Classic")],["🎒🐼",t("学生","Student")],["👨‍🍳🐼",t("厨师","Chef")],["🚀🐼",t("宇航","Astronaut")],["👑🐼",t("国王","King")],["🌸🐼",t("花花","Flower")]].map(s=>`<div class="skin ${skin===s[0]?"selected":""}" onclick="selectSkin('${s[0]}')"><div class="skin-icon">${s[0]}</div>${s[1]}</div>`).join("");
+}
+function buy(type,cost){
+ if(game.coins<cost){toast(t("🪙 金币不够哦！","🪙 Not enough coins!"));return}
+ game.coins-=cost;
+ if(type==="time")toast(t("⏰ 一年级没有倒计时，所以送你一个鼓励！","⏰ No timer for Year 1 — here is an encouragement!"));
+ if(type==="hint")useHint();
+ if(type==="skip")skipQuestion();
+ if(type==="double"){game.double=true;toast(t("✨ 双倍金币开启！","✨ Double coins activated!"))}
+ if(type==="life"){game.lives++;toast(t("❤️ +1 生命！","❤️ +1 life!"))}
+ updateHUD();localStorage.setItem("pandaCoins",game.coins);renderShop();
+}
+function selectSkin(s){skin=s;localStorage.setItem("pandaSkin",s);setSkin();renderShop();toast(t("🐼 换好造型啦！","🐼 Skin changed!"))}
+function setSkin(){document.getElementById("panda").textContent=skin}
+
+function renderTopics(){
+ document.getElementById("topicGrid").innerHTML=topics.map(x=>`<button class="topic ${x.id===topic?"active":""}" onclick="selectTopic('${x.id}')">${x.id==="random"?"🎲 ":""}${x[lang]}</button>`).join("");
+}
+function selectTopic(id){topic=id;document.getElementById("currentTopic").textContent=topics.find(x=>x.id===id)[lang];renderTopics();closeModal("topicsModal");toast(t("📚 已选择：","📚 Selected: ")+topics.find(x=>x.id===id)[lang])}
+
+function openAchievements(){renderAchievements();openModal("achievementModal")}
+function renderAchievements(){
+ document.getElementById("achievementList").innerHTML=A.map(a=>{let on=a.check();return `<div class="achievement ${on?"on":""}"><b>${a[lang]}</b><br><small>${lang==="zh"?a.dzh:a.den}</small><br>${on?"✅ "+t("已解锁","Unlocked"):"🔒 "+t("未解锁","Locked")}</div>`}).join("")
+}
+function scores(){return JSON.parse(localStorage.getItem("pandaRank")||"[]")}
+function saveScore(score){let name=prompt(t("输入名字加入排行榜：","Enter your name for the leaderboard:"),t("小熊猫","Little Panda"));let s=scores();s.push({name:name||t("小熊猫","Little Panda"),score});s.sort((a,b)=>b.score-a.score);localStorage.setItem("pandaRank",JSON.stringify(s.slice(0,10)))}
+function openLeaderboard(){let s=scores();document.getElementById("leaderboardList").innerHTML=s.length?s.map((x,i)=>`<div class="rank"><span>${["🥇","🥈","🥉"][i]||"🏅"} ${i+1}. ${x.name}</span><b>⭐ ${x.score}</b></div>`).join(""):`<p style="text-align:center">${t("还没有记录！","No records yet!")}</p>`;openModal("leaderboardModal")}
+function clearLeaderboard(){if(confirm(t("确定清除吗？","Clear leaderboard?"))){localStorage.removeItem("pandaRank");openLeaderboard()}}
+
+function finish(){alert(t(`🐼 游戏结束！\n答对：${game.correct}题\n答错：${game.wrong}题\n金币：${game.coins}\n分数：${game.score}`,`🐼 Game Over!\nCorrect: ${game.correct}\nWrong: ${game.wrong}\nCoins: ${game.coins}\nScore: ${game.score}`));endGame()}
+function openModal(id){document.getElementById(id==="topics"?"topicsModal":id).classList.remove("hidden")}
+function closeModal(id){document.getElementById(id).classList.add("hidden")}
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.add("hidden")}))
+function toast(x){let z=document.getElementById("toast");z.textContent=x;z.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>z.classList.remove("show"),1800)}
+function sound(type){try{let c=new AudioContext(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=type==="wrong"?180:type==="coin"?850:650;g.gain.value=.08;o.start();o.stop(c.currentTime+.2)}catch(e){}}
+
+setSkin();renderAll();window.addEventListener("resize",positionPanda);
+</script>
+
+<script>
+/* V4: fixed-screen question game, no map and no panda walking */
+function startGame(){
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ game.lives=3;game.combo=0;game.score=0;game.correct=0;game.wrong=0;game.level=1;game.double=false;
+ setSkin();updateHUD();renderAll();
+ document.getElementById("currentTopic").textContent=topics.find(x=>x.id===topic)[lang];
+ toast(t("🐼 开始答题啦！没有倒计时，慢慢想～","🐼 Let's start! No timer — take your time!"));
+}
+function setSkin(){document.getElementById("gamePanda").textContent=skin}
+function openQuestion(){
+ if(game.question)return;
+ game.question=true;
+ let q=qmake();game.answer=q.answer;
+ document.getElementById("questionModal").classList.remove("hidden");
+ document.getElementById("questionText").innerHTML=q.text;
+ document.getElementById("feedback").textContent="";
+ let box=document.getElementById("choices");box.innerHTML="";
+ q.choices.forEach(x=>{
+   let b=document.createElement("button");b.className="choice";b.textContent=x;
+   b.onclick=()=>answer(x,b);box.appendChild(b);
+ });
+}
+function closeQuestion(){game.question=false;document.getElementById("questionModal").classList.add("hidden")}
+function movePanda(){return}
+function checkCoins(){return}
+function checkChallenge(){return}
+function positionPanda(){return}
+</script>
+</body>
+</html>
